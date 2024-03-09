@@ -1,6 +1,6 @@
 # golibimagequant
 
-golibimagequant is a slim wrapper for libimagequant
+golibimagequant is binding library for [libimagequant](https://github.com/ImageOptim/libimagequant)
 
 ## Supported Features
 
