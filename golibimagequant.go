@@ -1,6 +1,7 @@
 package golibimagequant
 
 // #cgo LDFLAGS: -L./libimagequant/target/release/ -limagequant_sys -lm
+// #include "stdlib.h"
 // #include "./libimagequant/imagequant-sys/libimagequant.h"
 import "C"
 import (
@@ -9,11 +10,12 @@ import (
 	"unsafe"
 )
 
-type cAttr *C.struct_liq_attr
-type cImage *C.struct_liq_image
-type cResult *C.struct_liq_result
-type cPalette *C.struct_liq_palette
-type cColor *C.struct_liq_color
+type cLiqAttr *C.struct_liq_attr
+type cLiqImage *C.struct_liq_image
+type cLiqResult *C.struct_liq_result
+type cLiqPalette *C.struct_liq_palette
+type cLiqColor *C.struct_liq_color
+type cLiqError int
 
 type Color struct {
 	r uint8
@@ -22,7 +24,7 @@ type Color struct {
 	a uint8
 }
 
-func NewColor(ccolor cColor) Color {
+func NewColor(ccolor cLiqColor) Color {
 	return Color{
 		r: uint8(ccolor.r),
 		g: uint8(ccolor.g),
@@ -31,7 +33,7 @@ func NewColor(ccolor cColor) Color {
 	}
 }
 
-func NewRGBA(ccolor cColor) color.RGBA {
+func NewRGBA(ccolor cLiqColor) color.RGBA {
 	return color.RGBA{
 		R: uint8(ccolor.r),
 		G: uint8(ccolor.g),
@@ -44,43 +46,79 @@ func Version() uint {
 	return uint(C.liq_version())
 }
 
-func CreateAttr() cAttr {
+// -------
+// attr creation
+// -------
+
+func CreateAttr() cLiqAttr {
 	return C.liq_attr_create()
 }
 
-func DestroyAttr(attr cAttr) {
+func CopyAttr(attr cLiqAttr) cLiqAttr {
+	return C.liq_attr_copy(attr)
+}
+
+func DestroyAttr(attr cLiqAttr) {
 	C.liq_attr_destroy(attr)
 }
 
-func SetMaxColors(attr cAttr, colors int) {
-	C.liq_set_max_colors(attr, C.int(colors))
+// -------
+// quality controls
+// -------
+
+func SetMaxColors(attr cLiqAttr, colors int) cLiqError {
+	return cLiqError(C.liq_set_max_colors(attr, C.int(colors)))
 }
 
-func GetMaxColors(attr cAttr) int {
+func GetMaxColors(attr cLiqAttr) int {
 	return int(C.liq_get_max_colors(attr))
 }
 
-func SetQuality(attr cAttr, min int, max int) {
-	C.liq_set_quality(attr, C.int(min), C.int(max))
+func SetSpeed(attr cLiqAttr, speed int) cLiqError {
+	return cLiqError(C.liq_set_speed(attr, C.int(speed)))
 }
 
-func GetMinQuantity(attr cAttr) int {
+func GetSpeed(attr cLiqAttr) int {
+	return int(C.liq_get_speed(attr))
+}
+
+func SetMinPosterization(attr cLiqAttr, bits int) cLiqError {
+	return cLiqError(C.liq_set_min_posterization(attr, C.int(bits)))
+}
+
+func GetMinPosterization(attr cLiqAttr) int {
+	return int(C.liq_get_min_posterization(attr))
+}
+
+func SetQuality(attr cLiqAttr, min int, max int) cLiqError {
+	return cLiqError(C.liq_set_quality(attr, C.int(min), C.int(max)))
+}
+
+func GetMinQuantity(attr cLiqAttr) int {
 	return int(C.liq_get_min_quality(attr))
 }
 
-func GetMaxQuantity(attr cAttr) int {
+func GetMaxQuantity(attr cLiqAttr) int {
 	return int(C.liq_get_max_quality(attr))
 }
 
-func CreateImageRGBA(attr cAttr, pixels *uint8, width int, height int, gamma float64) cImage {
+// -------
+// image creation
+// -------
+
+func CreateImageRGBA(attr cLiqAttr, pixels *uint8, width int, height int, gamma float64) cLiqImage {
 	return C.liq_image_create_rgba(attr, unsafe.Pointer(pixels), C.int(width), C.int(height), C.double(gamma))
 }
 
-func DestroyImage(image cImage) {
+func DestroyImage(image cLiqImage) {
 	C.liq_image_destroy(image)
 }
 
-func AddFixedColor(image cImage, color Color) {
+// -------
+// image controls
+// -------
+
+func AddFixedColor(image cLiqImage, color Color) {
 	C.liq_image_add_fixed_color(image, C.struct_liq_color{
 		r: C.uchar(color.r),
 		g: C.uchar(color.g),
@@ -89,18 +127,26 @@ func AddFixedColor(image cImage, color Color) {
 	})
 }
 
-func QuantizeImage(attr cAttr, image cImage) cResult {
-	return C.liq_quantize_image(attr, image)
+// -------
+// quantization
+// -------
+
+func QuantizeImage(attr cLiqAttr, image cLiqImage, result *cLiqResult) cLiqError {
+	return cLiqError(C.liq_image_quantize(image, attr, (**C.struct_liq_result)(result)))
 }
 
-func DestroyResult(result cResult) {
+func DestroyResult(result cLiqResult) {
 	C.liq_result_destroy(result)
 }
 
-func GetPalette(result cResult) cPalette {
+// -------
+// quantization results
+// -------
+
+func GetPalette(result cLiqResult) cLiqPalette {
 	return C.liq_get_palette(result)
 }
 
-func WriteRemappedImage(result cResult, image cImage, buffer *uint8, bufferSize uint64) {
-	C.liq_write_remapped_image(result, image, unsafe.Pointer(buffer), C.ulong(bufferSize))
+func WriteRemappedImage(result cLiqResult, image cLiqImage, buffer *uint8, bufferSize uint64) cLiqError {
+	return cLiqError(C.liq_write_remapped_image(result, image, unsafe.Pointer(buffer), C.ulong(bufferSize)))
 }
