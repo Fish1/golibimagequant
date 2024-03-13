@@ -115,7 +115,7 @@ func Test_AddFixedColor(t *testing.T) {
 	}
 	AddFixedColor(image, secondColor)
 
-	var result cLiqResult
+	var result LiqResult
 	err := QuantizeImage(attr, image, &result)
 	if err != 0 {
 		t.Errorf("error quantizing image")
@@ -143,7 +143,7 @@ func Test_SimplePNGQuant(t *testing.T) {
 	SetSpeed(cattr, 1)
 	cimage := CreateImageRGBA(cattr, &raw[0], width, height, 0)
 
-	var cresult cLiqResult
+	var cresult LiqResult
 	_ = QuantizeImage(cattr, cimage, &cresult)
 
 	pixels := make([]uint8, width*height)
