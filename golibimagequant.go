@@ -1,8 +1,8 @@
 package golibimagequant
 
-// #cgo LDFLAGS: -L./libimagequant/target/release/ -limagequant_sys -lm
+// #cgo LDFLAGS: -L./libs/ -limagequant_sys -lm
 // #include "stdlib.h"
-// #include "./libimagequant/imagequant-sys/libimagequant.h"
+// #include "./libs/libimagequant.h"
 import "C"
 import (
 	"image/color"

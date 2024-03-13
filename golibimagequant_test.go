@@ -24,7 +24,6 @@ func Test_Version(t *testing.T) {
 func Test_CopyAttr(t *testing.T) {
 	attr := CreateAttr()
 	attrCopy := CopyAttr(attr)
-
 	if attr == nil || attrCopy == nil {
 		t.Error("error copying attr")
 	}
@@ -40,7 +39,6 @@ func Test_SetMaxColors(t *testing.T) {
 	SetMaxColors(attr, expected)
 	result := GetMaxColors(attr)
 	DestroyAttr(attr)
-
 	if result != expected {
 		t.Errorf("have = %d , want %d\n", result, expected)
 	}
