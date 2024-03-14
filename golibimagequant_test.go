@@ -100,22 +100,22 @@ func Test_AddFixedColor(t *testing.T) {
 	attr := CreateAttr()
 	data := [4]uint8{0, 0, 0, 0}
 	image := CreateImageRGBA(attr, &data[0], 1, 1, 0)
-	firstColor := Color{
-		r: 1,
-		g: 1,
-		b: 1,
-		a: 1,
+	firstColor := LiqColor{
+		R: 1,
+		G: 1,
+		B: 1,
+		A: 1,
 	}
 	AddFixedColor(image, firstColor)
-	secondColor := Color{
-		r: 3,
-		g: 3,
-		b: 3,
-		a: 3,
+	secondColor := LiqColor{
+		R: 3,
+		G: 3,
+		B: 3,
+		A: 3,
 	}
 	AddFixedColor(image, secondColor)
 
-	var result LiqResult
+	var result *LiqResult
 	err := QuantizeImage(attr, image, &result)
 	if err != 0 {
 		t.Errorf("error quantizing image")
@@ -123,8 +123,8 @@ func Test_AddFixedColor(t *testing.T) {
 
 	palette := GetPalette(result)
 
-	firstResult := NewColor(&palette.entries[0])
-	secondResult := NewColor(&palette.entries[1])
+	firstResult := palette.Entries[0]
+	secondResult := palette.Entries[1]
 
 	if firstColor != firstResult {
 		t.Fatalf("have = %+v , want = %+v", firstResult, firstColor)
@@ -143,7 +143,7 @@ func Test_SimplePNGQuant(t *testing.T) {
 	SetSpeed(cattr, 1)
 	cimage := CreateImageRGBA(cattr, &raw[0], width, height, 0)
 
-	var cresult LiqResult
+	var cresult *LiqResult
 	_ = QuantizeImage(cattr, cimage, &cresult)
 
 	pixels := make([]uint8, width*height)
@@ -153,8 +153,8 @@ func Test_SimplePNGQuant(t *testing.T) {
 
 	rectangle := image.Rect(0, 0, width, height)
 	palette := make(color.Palette, 0)
-	for _, entry := range cpalette.entries {
-		palette = append(palette, NewRGBA(&entry))
+	for _, entry := range cpalette.Entries {
+		palette = append(palette, NewRGBA(entry))
 	}
 
 	image := image.NewPaletted(rectangle, palette)
