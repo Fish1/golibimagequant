@@ -1,3 +1,3 @@
-module github.com/fish1/golibimagequant
+module github.com/yapms/golibimagequant
 
 go 1.21.6
